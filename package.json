@@ -1,0 +1,9 @@
+{
+  "name": "rifa-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rifa 1-1000 — vende números, lleva vendidos y sortea al ganador",
+  "scripts": {
+    "build": "echo \"No build step required\""
+  }
+}
