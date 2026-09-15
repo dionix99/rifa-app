@@ -561,6 +561,29 @@
             font-size: 16px;
         }
 
+        .prize-box {
+            border: 1px solid var(--border);
+            background: var(--glass);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .prize-box-title {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .prize-box .seg {
+            margin-bottom: 12px;
+        }
+
+        .prize-box .seg-btn {
+            font-size: 12px;
+            padding: 11px 8px;
+        }
+
         .sale-item-info {
             cursor: pointer;
             flex: 1;
@@ -1388,19 +1411,56 @@
                     </div>
                 </div>
 
-                <div class="field">
-                    <label for="inpPremio">🥇 1er premio ($)</label>
-                    <input id="inpPremio" type="number" min="0" step="0.01">
+                <div class="prize-box">
+                    <div class="prize-box-title">🥇 1er premio</div>
+                    <div class="seg">
+                        <button type="button" class="seg-btn" id="p1Din" onclick="setPremioTipo(1,'dinero')">💵 Dólares</button>
+                        <button type="button" class="seg-btn" id="p1Obj" onclick="setPremioTipo(1,'objeto')">📦 Objeto</button>
+                    </div>
+                    <div class="field" style="margin-bottom:10px;">
+                        <label id="lblVal1">🥇 Premio en $</label>
+                        <input id="inpPremio" type="number" min="0" step="0.01">
+                    </div>
+                    <div class="field hidden" id="campoTxt1" style="margin-bottom:0;">
+                        <label for="inpTxt1">🥇 ¿Qué premio? (ej. Moto, TV)</label>
+                        <input id="inpTxt1" type="text" placeholder="Ej. Una moto, TV 55&quot;…">
+                    </div>
                 </div>
 
                 <div class="field hidden" id="campoPremio2">
-                    <label for="inpPremio2">🥈 2do premio ($)</label>
-                    <input id="inpPremio2" type="number" min="0" step="0.01">
+                    <div class="prize-box" style="margin-bottom:0;">
+                        <div class="prize-box-title">🥈 2do premio</div>
+                        <div class="seg">
+                            <button type="button" class="seg-btn" id="p2Din" onclick="setPremioTipo(2,'dinero')">💵 Dólares</button>
+                            <button type="button" class="seg-btn" id="p2Obj" onclick="setPremioTipo(2,'objeto')">📦 Objeto</button>
+                        </div>
+                        <div class="field" style="margin-bottom:10px;">
+                            <label id="lblVal2">🥈 Premio en $</label>
+                            <input id="inpPremio2" type="number" min="0" step="0.01">
+                        </div>
+                        <div class="field hidden" id="campoTxt2" style="margin-bottom:0;">
+                            <label for="inpTxt2">🥈 ¿Qué premio? (ej. Moto, TV)</label>
+                            <input id="inpTxt2" type="text" placeholder="Ej. Celular, TV 32&quot;…">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="field hidden" id="campoPremio3">
-                    <label for="inpPremio3">🥉 3er premio ($)</label>
-                    <input id="inpPremio3" type="number" min="0" step="0.01">
+                    <div class="prize-box" style="margin-bottom:0;">
+                        <div class="prize-box-title">🥉 3er premio</div>
+                        <div class="seg">
+                            <button type="button" class="seg-btn" id="p3Din" onclick="setPremioTipo(3,'dinero')">💵 Dólares</button>
+                            <button type="button" class="seg-btn" id="p3Obj" onclick="setPremioTipo(3,'objeto')">📦 Objeto</button>
+                        </div>
+                        <div class="field" style="margin-bottom:10px;">
+                            <label id="lblVal3">🥉 Premio en $</label>
+                            <input id="inpPremio3" type="number" min="0" step="0.01">
+                        </div>
+                        <div class="field hidden" id="campoTxt3" style="margin-bottom:0;">
+                            <label for="inpTxt3">🥉 ¿Qué premio? (ej. Moto, TV)</label>
+                            <input id="inpTxt3" type="text" placeholder="Ej. Despensa, bocina…">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="field" id="campoFecha">
@@ -1448,6 +1508,12 @@
                 prizeValue: 500,
                 prize2: 0,
                 prize3: 0,
+                premio1Tipo: 'dinero',
+                premio2Tipo: 'dinero',
+                premio3Tipo: 'dinero',
+                premio1Texto: '',
+                premio2Texto: '',
+                premio3Texto: '',
                 drawDate: '',
                 rifa: '',
                 modoSorteo: 'fecha',
@@ -1494,18 +1560,63 @@
         }
 
         function premiosActivos() {
+            const lista = [{
+                pos: 1,
+                tipo: state.premio1Tipo,
+                texto: state.premio1Texto,
+                valor: state.prizeValue || 0
+            }];
             if (state.numPremios === 3) {
-                return [
-                    { pos: 1, valor: state.prizeValue || 0 },
-                    { pos: 2, valor: state.prize2 || 0 },
-                    { pos: 3, valor: state.prize3 || 0 }
-                ];
+                lista.push({
+                    pos: 2,
+                    tipo: state.premio2Tipo,
+                    texto: state.premio2Texto,
+                    valor: state.prize2 || 0
+                }, {
+                    pos: 3,
+                    tipo: state.premio3Tipo,
+                    texto: state.premio3Texto,
+                    valor: state.prize3 || 0
+                });
             }
-            return [{ pos: 1, valor: state.prizeValue || 0 }];
+            return lista;
+        }
+
+        function premioTipo(pos) {
+            return pos === 2 ? (state.premio2Tipo || 'dinero') :
+                pos === 3 ? (state.premio3Tipo || 'dinero') : (state.premio1Tipo || 'dinero');
+        }
+
+        function premioTexto(pos) {
+            return pos === 2 ? (state.premio2Texto || '') :
+                pos === 3 ? (state.premio3Texto || '') : (state.premio1Texto || '');
+        }
+
+        function premioValor(pos) {
+            return pos === 2 ? (state.prize2 || 0) :
+                pos === 3 ? (state.prize3 || 0) : (state.prizeValue || 0);
+        }
+
+        function ordPos(pos) {
+            return pos === 2 ? '2do' : pos === 3 ? '3er' : '1er';
+        }
+
+        function premioLabel(pos) {
+            if (premioTipo(pos) === 'objeto') return premioTexto(pos) || 'El premio';
+            return fmt(premioValor(pos));
+        }
+
+        function premioLabelConValor(pos) {
+            const v = premioValor(pos);
+            if (premioTipo(pos) === 'objeto') {
+                const t = premioTexto(pos) || 'El premio';
+                return t + (v > 0 ? ' (≈' + fmt(v) + ')' : '');
+            }
+            return fmt(v);
         }
 
         function premioTotal() {
-            return premiosActivos().reduce((s, p) => s + p.valor, 0);
+            return premiosActivos().reduce((s, p) => s + (Number(p.valor) || 0), 0);
         }
 
         function fechatexto(iso) {
@@ -1711,7 +1822,7 @@
             $('btNum').textContent = pad(nNum, String(state.max).length);
             $('btName').textContent = d ? (d.name || 'Vendido') : 'Disponible';
             $('btMeta').textContent = 'Valor del ticket: ' + fmt(state.ticketPrice) +
-                ' · ' + (state.numPremios === 3 ? '1er premio ' : 'premio ') + fmt(state.prizeValue) +
+                ' · ' + (state.numPremios === 3 ? '1er premio: ' : 'premio: ') + premioLabelConValor(1) +
                 (d ? ' · ' + (d.paid ? 'pagado' : 'pendiente') + ' el ' +
                 new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
             $('btStatus').textContent = d ? (d.paid ? '✅ PAGADO' : '⏳ PENDIENTE') : '🎯 DISPONIBLE';
@@ -1744,9 +1855,9 @@
             lineas.push('Estado: ' + (!d ? 'Disponible' : d.paid ? 'PAGADO ✅' : 'PENDIENTE ⏳'));
             lineas.push('Ticket: ' + fmt(state.ticketPrice));
             if (state.numPremios === 3) {
-                lineas.push('Premios: 🥇 ' + fmt(state.prizeValue) + ' · 🥈 ' + fmt(state.prize2 || 0) + ' · 🥉 ' + fmt(state.prize3 || 0));
+                lineas.push('Premios: 🥇 ' + premioLabelConValor(1) + ' · 🥈 ' + premioLabelConValor(2) + ' · 🥉 ' + premioLabelConValor(3));
             } else {
-                lineas.push('Premio: ' + fmt(state.prizeValue));
+                lineas.push('Premio: ' + premioLabelConValor(1));
             }
             if (state.drawDate) lineas.push('Sorteo: ' + fechatexto(state.drawDate));
             else if (state.modoSorteo === 'manual') lineas.push('Sorteo: cuando decida el organizador 🎯');
@@ -1803,14 +1914,14 @@
             $('bsProgText').textContent = (vendCount * 100 / (state.max || 1)).toFixed(1) + '% vendido';
 
             $('cjTicket').textContent = fmt(state.ticketPrice);
-            $('cjPremio').textContent = fmt(state.prizeValue);
+            $('cjPremio').textContent = premioLabelConValor(1);
             const tres = state.numPremios === 3;
             $('cjPremio2Row').classList.toggle('hidden', !tres);
             $('cjPremio3Row').classList.toggle('hidden', !tres);
             $('cjPremTotalRow').classList.toggle('hidden', !tres);
             if (tres) {
-                $('cjPremio2').textContent = fmt(state.prize2 || 0);
-                $('cjPremio3').textContent = fmt(state.prize3 || 0);
+                $('cjPremio2').textContent = premioLabelConValor(2);
+                $('cjPremio3').textContent = premioLabelConValor(3);
                 $('cjPremTotal').textContent = fmt(totalPremios);
             }
             $('cjVendidos').textContent = fmtInt(vendCount) + ' / ' + fmtInt(state.max);
@@ -1834,9 +1945,9 @@
                     'Faltan ' + fmt(totalPremios - recaudado) + ' para cubrirlos');
 
             const act = premiosActivos();
-            const premioText = state.numPremios === 3
-                ? '💥 premios 1º ' + fmt(act[0].valor) + ' · 2º ' + fmt(act[1].valor) + ' · 3º ' + fmt(act[2].valor)
-                : '🏆 premio ' + fmt(act[0].valor);
+            const premioText = act.length === 3
+                ? '💥 premios 1º ' + premioLabelConValor(1) + ' · 2º ' + premioLabelConValor(2) + ' · 3º ' + premioLabelConValor(3)
+                : '🏆 premio ' + premioLabelConValor(1);
             $('sfHint').textContent = vendCount + ' números vendidos (' + pagCount + ' pagados, ' + pendCount + ' pendientes) · ' + premioText +
                 ' · recaudado ' + fmt(recaudado);
 
@@ -1990,12 +2101,19 @@
                     const isLast = idx === 0;
                     const valorPremio = w.premio != null ? w.premio :
                         (w.pos === 2 ? state.prize2 : w.pos === 3 ? state.prize3 : state.prizeValue);
+                    const wTipo = w.pos === 2 ? (state.premio2Tipo || 'dinero') :
+                        w.pos === 3 ? (state.premio3Tipo || 'dinero') : (state.premio1Tipo || 'dinero');
+                    const wTexto = w.pos === 2 ? (state.premio2Texto || '') :
+                        w.pos === 3 ? (state.premio3Texto || '') : (state.premio1Texto || '');
+                    const premioTextW = wTipo === 'objeto' ?
+                        (wTexto || 'El premio') + (valorPremio > 0 ? ' · ' + fmt(valorPremio) : '') :
+                        fmt(valorPremio);
                     item.innerHTML =
                         '<div><span class="pos">' + (w.pos ? (posEmoji[w.pos] || '🏆') : '🏆') + '</span> ' +
                         '<span class="n">' + pad(w.num, String(state.max).length) + '</span>' +
                         '<div class="meta">' + (w.name ? w.name + ' · ' : '') +
-                        (w.pos ? (w.pos === 1 ? '1er premio' : w.pos === 2 ? '2do premio' : '3er premio') + ' · ' : '') +
-                        fmt(valorPremio) + ' · ' +
+                        (w.pos ? ordPos(w.pos) + ' premio · ' : '') +
+                        premioTextW + ' · ' +
                         new Date(w.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
                         '</div></div>' +
                         (isLast ? '<button class="undo" onclick="deshacerUltimo()">↩️ Quitar</button>' : '');
@@ -2037,9 +2155,9 @@
             const activos = premiosActivos();
             const total = premioTotal();
             const msg = state.numPremios === 3
-                ? '🎲 ¿Sortear los 3 premios?\n🥇 ' + fmt(activos[0].valor) + ' · 🥈 ' + fmt(activos[1].valor) + ' · 🥉 ' + fmt(activos[2].valor) +
-                ' · total ' + fmt(total) + '\nEntre ' + pagados.length + ' números pagados, sin repetir.'
-                : '🎲 ¿Sortear entre ' + pagados.length + ' números pagados?\nPremio: ' + fmt(total) +
+                ? '🎲 ¿Sortear los 3 premios?\n🥇 ' + premioLabelConValor(1) + ' · 🥈 ' + premioLabelConValor(2) + ' · 🥉 ' + premioLabelConValor(3) +
+                ' · total (valor) ' + fmt(total) + '\nEntre ' + pagados.length + ' números pagados, sin repetir.'
+                : '🎲 ¿Sortear entre ' + pagados.length + ' números pagados?\nPremio: ' + premioLabelConValor(1) +
                 ' · Si hay pendientes (sin pagar) quedan fuera del sorteo.';
             if (!confirm(msg)) return;
 
@@ -2084,7 +2202,7 @@
                 const d = state.numbers[num] || {};
                 rollEl.textContent = pad(num, padLen);
                 rollEl.classList.add('winner');
-                $('sfActual').textContent = (prem.pos === 1 ? '🥇' : prem.pos === 2 ? '🥈' : '🥉') + ' N° ' + pad(num, padLen) + ' · ' + fmt(prem.valor);
+                $('sfActual').textContent = (prem.pos === 1 ? '🥇' : prem.pos === 2 ? '🥈' : '🥉') + ' N° ' + pad(num, padLen) + ' · ' + premioLabelConValor(prem.pos);
 
                 state.winners.push({
                     num: num,
@@ -2111,6 +2229,17 @@
         /* ── AJUSTES ── */
         let modoSel = 'fecha';
         let npremSel = 1;
+        let tipoSel = { 1: 'dinero', 2: 'dinero', 3: 'dinero' };
+
+        function setPremioTipo(pos, tipo) {
+            tipoSel[pos] = tipo;
+            $('p' + pos + 'Din').classList.toggle('active', tipo === 'dinero');
+            $('p' + pos + 'Obj').classList.toggle('active', tipo === 'objeto');
+            $('campoTxt' + pos).classList.toggle('hidden', tipo !== 'objeto');
+            $('lblVal' + pos).textContent =
+                (pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉') + ' ' +
+                (tipo === 'objeto' ? 'Valor $ del premio (para la ganancia)' : 'Premio en $');
+        }
 
         function setModo(m) {
             modoSel = m;
@@ -2133,14 +2262,23 @@
         function cargarAjustes() {
             modoSel = state.modoSorteo === 'manual' ? 'manual' : 'fecha';
             npremSel = state.numPremios === 3 ? 3 : 1;
+            tipoSel[1] = state.premio1Tipo === 'objeto' ? 'objeto' : 'dinero';
+            tipoSel[2] = state.premio2Tipo === 'objeto' ? 'objeto' : 'dinero';
+            tipoSel[3] = state.premio3Tipo === 'objeto' ? 'objeto' : 'dinero';
             setModo(modoSel);
             setNpremios(npremSel);
+            setPremioTipo(1, tipoSel[1]);
+            setPremioTipo(2, tipoSel[2]);
+            setPremioTipo(3, tipoSel[3]);
             $('inpRifa').value = state.rifa;
             $('inpMax').value = state.max;
             $('inpTicket').value = state.ticketPrice;
             $('inpPremio').value = state.prizeValue;
             $('inpPremio2').value = state.prize2 || 0;
             $('inpPremio3').value = state.prize3 || 0;
+            $('inpTxt1').value = state.premio1Texto || '';
+            $('inpTxt2').value = state.premio2Texto || '';
+            $('inpTxt3').value = state.premio3Texto || '';
             $('inpFecha').value = state.drawDate;
         }
 
@@ -2156,10 +2294,10 @@
             if (!max || max < 1) { toast('⚠️ La cantidad de números debe ser mínimo 1'); return; }
             if (max > 10000) { toast('⚠️ Máximo 10.000 números'); return; }
             if (isNaN(ticket) || ticket < 0) { toast('⚠️ Precio del ticket inválido'); return; }
-            if (isNaN(premio) || premio < 0) { toast('⚠️ Valor del 1er premio inválido'); return; }
+            if (isNaN(premio) || premio < 0) { toast('⚠️ Valor $ del 1er premio inválido'); return; }
             if (npremSel === 3) {
-                if (isNaN(premio2) || premio2 < 0) { toast('⚠️ Valor del 2do premio inválido'); return; }
-                if (isNaN(premio3) || premio3 < 0) { toast('⚠️ Valor del 3er premio inválido'); return; }
+                if (isNaN(premio2) || premio2 < 0) { toast('⚠️ Valor $ del 2do premio inválido'); return; }
+                if (isNaN(premio3) || premio3 < 0) { toast('⚠️ Valor $ del 3er premio inválido'); return; }
             }
 
             let ocultos = 0;
@@ -2177,6 +2315,12 @@
             state.prizeValue = premio;
             state.prize2 = npremSel === 3 ? premio2 : 0;
             state.prize3 = npremSel === 3 ? premio3 : 0;
+            state.premio1Tipo = tipoSel[1];
+            state.premio2Tipo = npremSel === 3 ? tipoSel[2] : 'dinero';
+            state.premio3Tipo = npremSel === 3 ? tipoSel[3] : 'dinero';
+            state.premio1Texto = tipoSel[1] === 'objeto' ? $('inpTxt1').value.trim() : '';
+            state.premio2Texto = npremSel === 3 && tipoSel[2] === 'objeto' ? $('inpTxt2').value.trim() : '';
+            state.premio3Texto = npremSel === 3 && tipoSel[3] === 'objeto' ? $('inpTxt3').value.trim() : '';
             state.drawDate = fecha;
 
             save();
