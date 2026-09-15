@@ -407,6 +407,120 @@
             border-color: var(--accent-red);
         }
 
+        .sale-item .n.paid {
+            color: var(--accent-green);
+            text-shadow: 0 0 12px rgba(0, 232, 157, 0.4);
+        }
+
+        .sale-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: stretch;
+        }
+
+        .sale-item .btn-pay {
+            background: none;
+            border: 1px solid rgba(0, 232, 157, 0.4);
+            color: var(--accent-green);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .sale-item .btn-pay:hover {
+            background: rgba(0, 232, 157, 0.12);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .sale-item .btn-pay.warn {
+            border-color: rgba(255, 214, 89, 0.4);
+            color: var(--accent-gold);
+        }
+
+        .sale-item .btn-pay.warn:hover {
+            background: rgba(255, 214, 89, 0.12);
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        .sale-item .btn-del {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sale-item .btn-del:hover {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .paid-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .paid-toggle input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-green);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .paid-toggle.checked {
+            color: var(--accent-green);
+            border-color: rgba(0, 232, 157, 0.4);
+        }
+
+        .modal-paid {
+            margin: -6px 0 6px;
+        }
+
+        .btn-modal-pay {
+            background: rgba(0, 232, 157, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 232, 157, 0.4);
+        }
+
+        .btn-modal-pending {
+            background: rgba(255, 214, 89, 0.15);
+            color: var(--accent-gold);
+            border: 1px solid rgba(255, 214, 89, 0.4);
+        }
+
+        .sorteo-rifa {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 4px;
+        }
+
+        .sorteo-rifa.hidden {
+            display: none;
+        }
+
         .sale-item-info {
             cursor: pointer;
             flex: 1;
@@ -476,6 +590,26 @@
             bottom: -9px;
         }
 
+        .big-ticket .bt-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .big-ticket.paid {
+            border-color: var(--accent-green);
+            background: radial-gradient(circle at 30% 20%, rgba(0, 232, 157, 0.12), transparent 60%),
+                linear-gradient(135deg, #0f2b24, #0f0f1f);
+        }
+
+        .big-ticket.paid .bt-title,
+        .big-ticket.paid .bt-number {
+            color: var(--accent-green);
+            text-shadow: 0 0 40px rgba(0, 232, 157, 0.4);
+        }
+
         .big-ticket .bt-eyebrow {
             font-size: 11px;
             letter-spacing: 3px;
@@ -521,6 +655,16 @@
         }
 
         .bt-status.sold {
+            background: rgba(255, 214, 89, 0.15);
+            color: var(--accent-gold);
+        }
+
+        .bt-status.paid {
+            background: rgba(0, 232, 157, 0.15);
+            color: var(--accent-green);
+        }
+
+        .bt-status.pending {
             background: rgba(255, 214, 89, 0.15);
             color: var(--accent-gold);
         }
@@ -613,6 +757,25 @@
             border-radius: 50%;
             background: var(--accent-gold);
             box-shadow: 0 0 6px var(--accent-gold);
+        }
+
+        .num.paid {
+            background: linear-gradient(135deg, rgba(0, 232, 157, 0.16), rgba(0, 201, 138, 0.28));
+            border-color: rgba(0, 232, 157, 0.55);
+            color: var(--accent-green);
+        }
+
+        .num.paid::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green);
         }
 
         .num.found {
@@ -1061,6 +1224,7 @@
                 <div class="card-title">🔎 Buscar número para el comprador</div>
                 <input id="inpBuscarBig" type="number" min="1" placeholder="Escribe el número y sale el ticket grande…">
                 <div class="big-ticket hidden" id="bigTicket">
+                    <div class="bt-title" id="btRifa"></div>
                     <div class="bt-eyebrow">🎟️ Número</div>
                     <div class="bt-number" id="btNum">—</div>
                     <div class="bt-name" id="btName"></div>
@@ -1075,6 +1239,10 @@
                 <div class="sell-form">
                     <input id="inpVentaNum" type="number" min="1" placeholder="Número (vacío = siguiente libre)">
                     <input id="inpVentaName" type="text" autocomplete="off" autocapitalize="sentences" placeholder="Nombre del comprador">
+                    <label class="paid-toggle" id="lblInpPago">
+                        <input type="checkbox" id="inpPago">
+                        <span>💵 ¿Ya pagó? (si no, queda <b>pendiente</b> en amarillo)</span>
+                    </label>
                     <button class="btn-vender" onclick="venderRapido()">✔ Vender</button>
                 </div>
                 <div class="input-hint" style="margin-top:10px;">Deja el número vacío y se asigna el siguiente libre automáticamente.</div>
@@ -1090,7 +1258,7 @@
                 <div class="card search-card">
                     <input id="inputBuscar" type="number" placeholder="🔍 Buscar número…" min="1">
                 </div>
-                <div class="grid-hint">Toca un número para marcarlo como vendido. Los dorados ya están vendidos.</div>
+                <div class="grid-hint">Toca un número para marcarlo como vendido. Los amarillos están pendientes, los verdes pagados.</div>
                 <div class="grid" id="gridNumeros"></div>
                 <div style="height:14px"></div>
             </div>
@@ -1099,6 +1267,7 @@
         <!-- ─── SORTEO ─── -->
         <section id="sorteo" class="tab-panel">
             <div class="card center">
+                <div class="sorteo-rifa hidden" id="sfRifa"></div>
                 <div class="sorteo-fecha-label">📅 Fecha del sorteo</div>
                 <div class="sorteo-fecha" id="sfFecha">
                     —<span class="countdown" id="sfCount"></span>
@@ -1121,6 +1290,8 @@
                 <div class="stats-row"><span class="label">Precio por ticket</span><span class="value blue" id="cjTicket">$0</span></div>
                 <div class="stats-row"><span class="label">Valor del premio</span><span class="value gold" id="cjPremio">$0</span></div>
                 <div class="stats-row"><span class="label">Vendidos / total</span><span class="value" id="cjVendidos">0 / 0</span></div>
+                <div class="stats-row"><span class="label">Números pagados</span><span class="value green" id="cjPagados">0</span></div>
+                <div class="stats-row"><span class="label">Pendientes por cobrar</span><span class="value gold" id="cjPendientes">0</span></div>
                 <div class="stats-row"><span class="label">Recaudado hasta ahora</span><span class="value blue" id="cjRecaudado">$0</span></div>
                 <div class="stats-row"><span class="label">Faltan por vender</span><span class="value red" id="cjFaltan">0</span></div>
                 <div class="stats-row"><span class="label">Potencial si vendes TODO</span><span class="value green" id="cjPotencial">$0</span></div>
@@ -1138,6 +1309,12 @@
         <section id="ajustes" class="tab-panel">
             <div class="card">
                 <div class="card-title">⚙️ Parámetros de la rifa</div>
+
+                <div class="field">
+                    <label for="inpRifa">🏷️ Qué se va a sortear</label>
+                    <input id="inpRifa" type="text" placeholder="Ej. TV 55\", Bicicleta, Despensa…">
+                    <div class="input-hint">Se muestra en el ticket grande y en el texto copiado</div>
+                </div>
 
                 <div class="field">
                     <label for="inpMax">🔢 Números en la rifa</label>
@@ -1177,6 +1354,12 @@
             <div class="modal-title" id="mTitle"></div>
             <div class="modal-info" id="mInfo"></div>
             <input id="mInput" type="text" autocomplete="off" autocapitalize="sentences" placeholder="Nombre del comprador (opcional)">
+            <div class="modal-paid hidden" id="mPaidRow">
+                <label class="paid-toggle" id="lblMPaid">
+                    <input type="checkbox" id="mInputPaid">
+                    <span>💵 ¿Ya pagó?</span>
+                </label>
+            </div>
             <div class="modal-actions" id="mActions"></div>
         </div>
     </div>
@@ -1193,6 +1376,7 @@
                 ticketPrice: 2,
                 prizeValue: 500,
                 drawDate: '',
+                rifa: '',
                 numbers: {},
                 winners: []
             };
@@ -1276,9 +1460,9 @@
             for (let i = 1; i <= state.max; i++) {
                 const d = state.numbers[i];
                 const btn = document.createElement('button');
-                btn.className = 'num' + (d ? ' sold' : '');
+                btn.className = 'num' + (d ? (d.paid ? ' paid' : ' sold') : '');
                 btn.textContent = i;
-                if (d) btn.title = d.name ? i + ' — ' + d.name : i + ' — vendido';
+                if (d) btn.title = i + ' — ' + (d.name || 'vendido') + ' — ' + (d.paid ? 'pagado' : 'pendiente');
                 const match = f !== '' && String(i) === f;
                 if (match) {
                     btn.classList.add('found');
@@ -1292,6 +1476,14 @@
         }
 
         $('inputBuscar').addEventListener('input', renderGrid);
+
+        $('inpPago').addEventListener('change', () => {
+            $('lblInpPago').classList.toggle('checked', $('inpPago').checked);
+        });
+
+        $('mInputPaid').addEventListener('change', () => {
+            $('lblMPaid').classList.toggle('checked', $('mInputPaid').checked);
+        });
 
         function nextFree() {
             for (let i = 1; i <= state.max; i++) {
@@ -1322,15 +1514,18 @@
                 }
                 if (state.numbers[num]) { toast('⚠️ El número ' + num + ' ya está vendido'); return; }
             }
-            state.numbers[num] = { name: name, soldAt: Date.now() };
+            const paid = $('inpPago').checked;
+            state.numbers[num] = { name: name, soldAt: Date.now(), paid: paid };
             save();
             $('inpVentaNum').value = '';
             $('inpVentaName').value = '';
+            $('inpPago').checked = false;
+            $('lblInpPago').classList.remove('checked');
             actualizarPlaceholderNum();
             renderGrid();
             renderVendidos();
             updateStats();
-            toast('✔ Número ' + num + ' vendido' + (name ? ' a ' + name : ''));
+            toast('✔ Número ' + num + ' ' + (paid ? 'pagado' : 'pendiente') + (name ? ' · ' + name : ''));
             $('inpVentaName').focus();
         }
 
@@ -1346,17 +1541,32 @@
             const padLen = String(state.max).length;
             vend.forEach(n => {
                 const d = state.numbers[n];
+                const paid = !!d.paid;
                 const item = document.createElement('div');
                 item.className = 'sale-item';
                 item.innerHTML =
                     '<div class="sale-item-info" onclick="buscarYMostrar(' + n + ')">' +
-                    '<span class="n">' + pad(n, padLen) + '</span>' +
+                    '<span class="n' + (paid ? ' paid' : '') + '" title="' + (paid ? 'pagado' : 'pendiente') + '">' + pad(n, padLen) + '</span>' +
                     '<div class="meta">' + (d.name ? d.name : 'sin nombre') + ' · ' +
                     new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
+                    ' · ' + (paid ? 'pagado' : 'pendiente') +
                     '</div></div>' +
-                    '<button onclick="quitarVenta(' + n + ')">✖ Quitar</button>';
+                    '<div class="sale-actions">' +
+                    '<button class="btn-pay' + (paid ? ' warn' : '') + '" onclick="cambiarEstado(' + n + ')">' + (paid ? '⏳ Pendiente' : '✔ Pagar') + '</button>' +
+                    '<button class="btn-del" onclick="quitarVenta(' + n + ')">✖ Quitar</button>' +
+                    '</div>';
                 list.appendChild(item);
             });
+        }
+
+        function cambiarEstado(n) {
+            if (!state.numbers[n]) return;
+            state.numbers[n].paid = !state.numbers[n].paid;
+            save();
+            renderVendidos();
+            renderGrid();
+            updateStats();
+            toast('💳 Número ' + n + (state.numbers[n].paid ? ' marcado como PAGADO ✅' : ' vuelto a PENDIENTE ⏳'));
         }
 
         function quitarVenta(n) {
@@ -1398,14 +1608,18 @@
             const d = state.numbers[nNum];
             ticketActual = nNum;
             t.classList.remove('hidden');
-            t.classList.toggle('free', !d);
+            t.classList.remove('free', 'paid');
+            if (!d) t.classList.add('free');
+            else if (d.paid) t.classList.add('paid');
+            $('btRifa').textContent = state.rifa ? '🏆 ' + state.rifa : '';
             $('btNum').textContent = pad(nNum, String(state.max).length);
             $('btName').textContent = d ? (d.name || 'Vendido') : 'Disponible';
             $('btMeta').textContent = 'Valor del ticket: ' + fmt(state.ticketPrice) +
                 ' · premio de ' + fmt(state.prizeValue) +
-                (d ? ' · vendido el ' + new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
-            $('btStatus').textContent = d ? '✅ VENDIDO' : '🎯 DISPONIBLE';
-            $('btStatus').className = 'bt-status ' + (d ? 'sold' : 'free');
+                (d ? ' · ' + (d.paid ? 'pagado' : 'pendiente') + ' el ' +
+                new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+            $('btStatus').textContent = d ? (d.paid ? '✅ PAGADO' : '⏳ PENDIENTE') : '🎯 DISPONIBLE';
+            $('btStatus').className = 'bt-status ' + (d ? (d.paid ? 'paid' : 'pending') : 'free');
         }
 
         $('inpBuscarBig').addEventListener('input', () => {
@@ -1426,10 +1640,12 @@
         function copiarTicket() {
             if (ticketActual == null) { toast('🔎 Busca un número primero'); return; }
             const d = state.numbers[ticketActual];
-            const lineas = ['🎟️ RIFA'];
+            const lineas = [];
+            if (state.rifa) lineas.push('🏆 ' + state.rifa);
+            lineas.push('🎟️ RIFA');
             lineas.push('Número: ' + pad(ticketActual, String(state.max).length));
             if (d && d.name) lineas.push('Comprador: ' + d.name);
-            lineas.push('Estado: ' + (d ? 'VENDIDO ✅' : 'Disponible'));
+            lineas.push('Estado: ' + (!d ? 'Disponible' : d.paid ? 'PAGADO ✅' : 'PENDIENTE ⏳'));
             lineas.push('Ticket: ' + fmt(state.ticketPrice));
             lineas.push('Premio: ' + fmt(state.prizeValue));
             if (state.drawDate) lineas.push('Sorteo: ' + fechatexto(state.drawDate));
@@ -1469,7 +1685,9 @@
         function updateStats() {
             const vend = soldNumbers();
             const vendCount = vend.length;
-            const recaudado = vendCount * state.ticketPrice;
+            const pagCount = vend.filter(n => state.numbers[n].paid).length;
+            const pendCount = vendCount - pagCount;
+            const recaudado = pagCount * state.ticketPrice;
             const potencial = state.max * state.ticketPrice;
             const faltan = state.max - vendCount;
             const ganActual = recaudado - state.prizeValue;
@@ -1485,6 +1703,9 @@
             $('cjTicket').textContent = fmt(state.ticketPrice);
             $('cjPremio').textContent = fmt(state.prizeValue);
             $('cjVendidos').textContent = fmtInt(vendCount) + ' / ' + fmtInt(state.max);
+            $('cjPagados').textContent = fmtInt(pagCount);
+            $('cjPendientes').textContent = fmtInt(pendCount) +
+                (pendCount ? ' (' + fmt(pendCount * state.ticketPrice) + ')' : '');
             $('cjRecaudado').textContent = fmt(recaudado);
             $('cjFaltan').textContent = fmtInt(faltan);
             $('cjPotencial').textContent = fmt(potencial);
@@ -1501,8 +1722,8 @@
                 (recaudado >= state.prizeValue ? '✅ Premio cubierto 🎉' :
                     'Faltan ' + fmt(state.prizeValue - recaudado) + ' para cubrirlo');
 
-            $('sfHint').textContent = vendCount + ' números vendidos · premio de ' + fmt(state.prizeValue) +
-                ' · tens vendido ' + fmt(recaudado);
+            $('sfHint').textContent = vendCount + ' números vendidos (' + pagCount + ' pagados, ' + pendCount + ' pendientes) · premio de ' + fmt(state.prizeValue) +
+                ' · recaudado ' + fmt(recaudado);
 
             const chip = $('chipFecha');
             chip.innerHTML = state.drawDate ?
@@ -1521,22 +1742,29 @@
             const d = state.numbers[n];
             if (d) {
                 modalKind = 'sold';
-                $('mTitle').textContent = '🎫 Número ' + n + ' — vendido';
-                $('mInfo').textContent = 'Vendido por ' + fmt(state.ticketPrice) + ' · ' +
+                $('mTitle').textContent = '🎫 Número ' + n + ' — ' + (d.paid ? 'pagado' : 'pendiente');
+                $('mInfo').textContent = 'Ticket ' + fmt(state.ticketPrice) + ' · ' +
                     (d.name ? 'comprador: ' + d.name : 'sin nombre') +
                     (d.soldAt ? ' · ' + new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
                 $('mInput').value = d.name || '';
                 $('mInput').placeholder = 'Nombre del comprador';
+                $('mPaidRow').classList.add('hidden');
                 $('mActions').innerHTML =
-                    '<button class="btn-modal-ghost" onclick="cerrarModal()">Cerrar</button>' +
+                    (d.paid ?
+                        '<button class="btn-modal-pending" onclick="cambiarEstadoModal()">⏳ Marcar pendiente</button>' :
+                        '<button class="btn-modal-pay" onclick="cambiarEstadoModal()">✔ Marcar pagado</button>') +
                     '<button class="btn-modal-save" onclick="guardarNombre()">Guardar nombre</button>' +
-                    '<button class="btn-modal-free" onclick="marcarLibre()">Marcar libre</button>';
+                    '<button class="btn-modal-free" onclick="marcarLibre()">Marcar libre</button>' +
+                    '<button class="btn-modal-ghost" onclick="cerrarModal()">Cerrar</button>';
             } else {
                 modalKind = 'sell';
                 $('mTitle').textContent = '🎫 Vender número ' + n;
-                $('mInfo').textContent = 'Valor del ticket: ' + fmt(state.ticketPrice) + ' · premio de ' + fmt(state.prizeValue);
+                $('mInfo').textContent = 'Ticket ' + fmt(state.ticketPrice) + ' · premio de ' + fmt(state.prizeValue);
                 $('mInput').value = '';
                 $('mInput').placeholder = 'Nombre del comprador (opcional)';
+                $('mInputPaid').checked = false;
+                $('lblMPaid').classList.remove('checked');
+                $('mPaidRow').classList.remove('hidden');
                 $('mActions').innerHTML =
                     '<button class="btn-modal-ghost" onclick="cerrarModal()">Cancelar</button>' +
                     '<button class="btn-modal-sell" onclick="vender()">✔ Vender</button>';
@@ -1555,12 +1783,28 @@
             if (modalNum == null) return;
             const name = $('mInput').value.trim();
             if (state.numbers[modalNum]) { cerrarModal(); return; }
-            state.numbers[modalNum] = { name: name || '', soldAt: Date.now() };
+            const paid = $('mInputPaid').checked;
+            state.numbers[modalNum] = { name: name || '', soldAt: Date.now(), paid: paid };
             save();
             renderGrid();
             updateStats();
+            const n = modalNum;
             cerrarModal();
-            toast('✔ Número ' + modalNum + ' vendido' + (name ? ' a ' + name : ''));
+            toast('✔ Número ' + n + ' ' + (paid ? 'pagado' : 'pendiente') + (name ? ' · ' + name : ''));
+        }
+
+        function cambiarEstadoModal() {
+            if (modalNum == null) return;
+            if (!state.numbers[modalNum]) { cerrarModal(); return; }
+            state.numbers[modalNum].paid = !state.numbers[modalNum].paid;
+            const paid = state.numbers[modalNum].paid;
+            save();
+            renderGrid();
+            renderVendidos();
+            updateStats();
+            const n = modalNum;
+            cerrarModal();
+            toast('💳 Número ' + n + (paid ? ' marcado como PAGADO ✅' : ' vuelto a PENDIENTE ⏳'));
         }
 
         function guardarNombre() {
@@ -1592,6 +1836,9 @@
 
         /* ── SORTEO ── */
         function updateSorteoUI() {
+            const rifaEl = $('sfRifa');
+            rifaEl.textContent = state.rifa ? '🏆 ' + state.rifa : '';
+            rifaEl.classList.toggle('hidden', !state.rifa);
             if (!state.drawDate) {
                 $('sfFecha').innerHTML = '—';
                 $('sfCount').textContent = '';
@@ -1638,14 +1885,20 @@
 
         function sortear() {
             const vend = soldNumbers();
-            if (!vend.length) {
-                toast('⚠️ No hay números vendidos para sortear');
+            const pagados = vend.filter(n => state.numbers[n].paid);
+            if (!pagados.length) {
+                if (!vend.length) {
+                    toast('⚠️ No hay números vendidos para sortear');
+                } else {
+                    toast('⏳ Aún no hay números PAGADOS para sortear. Marca al menos uno como pagado');
+                }
                 return;
             }
             if (!state.drawDate) {
                 toast('💡 Sugerencia: pon la fecha del sorteo en Ajustes');
             }
-            if (!confirm('🎲 ¿Sortear entre ' + vend.length + ' números vendidos?\nPremio: ' + fmt(state.prizeValue) + ' cubierto por tus ventas.')) {
+            if (!confirm('🎲 ¿Sortear entre ' + pagados.length + ' números pagados?\nPremio: ' + fmt(state.prizeValue) +
+                ' · Si hay pendientes (sin pagar) quedan fuera del sorteo.')) {
                 return;
             }
 
@@ -1656,7 +1909,7 @@
 
             const buf = new Uint32Array(1);
             crypto.getRandomValues(buf);
-            const finalNum = vend[buf[0] % vend.length];
+            const finalNum = pagados[buf[0] % pagados.length];
             const padLen = String(state.max).length;
 
             let t = 0;
@@ -1665,7 +1918,7 @@
             const iv = setInterval(() => {
                 const rr = new Uint32Array(1);
                 crypto.getRandomValues(rr);
-                rollEl.textContent = pad(vend[rr[0] % vend.length], padLen);
+                rollEl.textContent = pad(pagados[rr[0] % pagados.length], padLen);
                 t += step;
                 if (t >= dur) {
                     clearInterval(iv);
@@ -1690,6 +1943,7 @@
 
         /* ── AJUSTES ── */
         function cargarAjustes() {
+            $('inpRifa').value = state.rifa;
             $('inpMax').value = state.max;
             $('inpTicket').value = state.ticketPrice;
             $('inpPremio').value = state.prizeValue;
@@ -1697,6 +1951,7 @@
         }
 
         function guardarAjustes() {
+            const rifa = $('inpRifa').value.trim();
             const max = parseInt($('inpMax').value, 10);
             const ticket = parseFloat($('inpTicket').value);
             const premio = parseFloat($('inpPremio').value);
@@ -1714,6 +1969,7 @@
                 }
             }
 
+            state.rifa = rifa;
             state.max = max;
             state.ticketPrice = ticket;
             state.prizeValue = premio;
