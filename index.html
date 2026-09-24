@@ -1258,6 +1258,38 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        .offline-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 300;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #7a5a10, #5a3e08);
+            border-bottom: 1px solid #d9a43a;
+            color: #ffe9b8;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+        }
+        .offline-bar.show { display: flex; }
+        .offline-bar .offline-msg { flex: 1; }
+        .offline-bar button {
+            background: #ffd25e;
+            color: #3a2600;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .offline-bar button:active { transform: scale(0.96); }
+
         /* ── PANTALLAS: login y mis rifas ── */
         .scr {
             position: fixed;
@@ -1760,6 +1792,11 @@
 
     <div class="toast" id="toast"></div>
 
+    <div class="offline-bar" id="offlineBar">
+        <span class="offline-msg" id="offlineMsg">⚠️ Sin conexión. Revisa el internet.</span>
+        <button id="btnReintentar" onclick="reintentarOffline()">↻ Reintentar</button>
+    </div>
+
     <script>
         const LS_KEY = 'rifa_app_v1';     // datos locales viejos (para importar)
         const LS_USR = 'rifa_sesion_v1'; // sesión { usuario, nombre, clave }
@@ -1825,9 +1862,12 @@
             try {
                 const r = await fetch('api/rifas?id=' + encodeURIComponent(rifaActual.id),
                     { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ datos: state }) });
-                if (!r.ok) toast('⚠️ No se pudo guardar');
+                if (!r.ok) {
+                    if (r.status === 401) { ocultarOffline(); toast('⚠️ No autorizado: entra con tu nombre y clave'); }
+                    else toast('⚠️ No se pudo guardar');
+                } else ocultarOffline();
             } catch (e) {
-                toast('⚠️ Sin conexión: los cambios se quedaron solo en este celular');
+                mostrarOffline('⚠️ Sin conexión: los cambios quedaron guardados solo en este celular.', () => subirRifa());
             }
         }
 
@@ -1922,7 +1962,7 @@
                 mostrarMisRifas();
                 toast(j.es_maestro ? '🔑 Sesión de maestro' : (j.nuevo ? '✔ Cuenta creada y guardada' : '✔ Bienvenido de nuevo'));
             } catch (e) {
-                toast('⚠️ Sin conexión');
+                mostrarOffline('⚠️ Sin conexión: no pudimos entrar. Revisa el internet.', () => entrar());
                 btn.disabled = false;
                 btn.textContent = modoLogin === 'crear' ? 'Crear cuenta y guardar' : 'Entrar';
             }
@@ -1942,7 +1982,13 @@
             try {
                 const r = await fetch('api/rifas', { headers: apiHeaders() });
                 const j = await r.json();
-                if (!j.ok) { lista.innerHTML = '<div class="empty">⚠️ ' + (j.error || 'Error') + '</div>'; return; }
+                if (!j.ok) {
+                    const msg = r.status === 401 ? 'No autorizado: entra con tu nombre y clave' : (j.error || 'Error');
+                    lista.innerHTML = '<div class="empty">⚠️ ' + msg + '</div>';
+                    ocultarOffline();
+                    return;
+                }
+                ocultarOffline();
                 const rifas = j.rifas || [];
                 $('btnImportar').style.display = (!rifas.length && localStorage.getItem(LS_KEY)) ? '' : 'none';
                 lista.innerHTML = '';
@@ -1973,7 +2019,7 @@
                     lista.appendChild(item);
                 });
             } catch (e) {
-                lista.innerHTML = '<div class="empty">⚠️ Sin conexión. Revisa el internet e inténtalo de nuevo.</div>';
+                mostrarOffline('⚠️ Sin conexión. Revisa el internet e intenta de nuevo.', () => cargarRifas());
             }
         }
 
@@ -2007,7 +2053,7 @@
                 await cargarRifas();
                 abrirRifa(j.id);
             } catch (e) {
-                toast('⚠️ Sin conexión');
+                mostrarOffline('⚠️ Sin conexión: no se pudo crear la rifa.', () => crearRifa());
                 btn.disabled = false;
                 btn.textContent = '➕ Crear nueva rifa';
             }
@@ -2024,13 +2070,18 @@
             try {
                 const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { headers: apiHeaders() });
                 const j = await r.json();
-                if (!j.ok) { toast('⚠️ ' + (j.error || 'Error al abrir')); return; }
+                if (!j.ok) {
+                    if (r.status === 401) { ocultarOffline(); toast('⚠️ No autorizado: entra con tu nombre y clave'); }
+                    else toast('⚠️ ' + (j.error || 'Error al abrir'));
+                    return;
+                }
                 state = Object.assign(defaultState(), j.datos || {});
                 rifaActual.nombre = j.nombre || '';
                 guardarCache(id, state);
                 aplicarTodo();
+                ocultarOffline();
             } catch (e) {
-                toast('⚠️ Sin conexión: abriste la copia guardada en este celular');
+                mostrarOffline('⚠️ Sin conexión: estás viendo la copia guardada en este celular.', () => abrirRifa(id));
             }
         }
 
@@ -2047,7 +2098,7 @@
                         try { localStorage.removeItem(LS_RIFA); } catch (e) {}
                     }
                     mostrarMisRifas();
-                } catch (e) { toast('⚠️ Sin conexión'); }
+                } catch (e) { mostrarOffline('⚠️ Sin conexión: no se pudo borrar.', null); }
             })();
         }
 
@@ -2066,7 +2117,7 @@
                 localStorage.removeItem(LS_KEY);
                 await cargarRifas();
                 abrirRifa(j.id);
-            } catch (e) { toast('⚠️ Sin conexión'); }
+            } catch (e) { mostrarOffline('⚠️ Sin conexión: no se pudo importar.', null); }
         }
 
         function salir() {
@@ -2111,6 +2162,7 @@
                     </div>`).join('');
             } catch (e) {
                 lista.innerHTML = '<div class="empty">⚠️ Sin conexión</div>';
+                mostrarOffline('⚠️ Sin conexión: no se pudieron cargar los usuarios.', () => cargarUsuarios());
             }
         }
 
@@ -2129,8 +2181,9 @@
                 const j = await r.json();
                 if (!j.ok) { toast('⚠️ ' + (j.error || 'Error')); return; }
                 toast('✔ Clave de "' + nombre + '" cambiada: ' + n1);
+                ocultarOffline();
             } catch (e) {
-                toast('⚠️ Sin conexión');
+                mostrarOffline('⚠️ Sin conexión: no se pudo cambiar la clave.', () => resetearClave(nombre));
             }
         }
 
@@ -2147,8 +2200,9 @@
                 toast('🗑 Usuario "' + nombre + '" borrado');
                 if (session.nombre === nombre) { salir(); return; }
                 cargarUsuarios();
+                ocultarOffline();
             } catch (e) {
-                toast('⚠️ Sin conexión');
+                mostrarOffline('⚠️ Sin conexión: no se pudo borrar el usuario.', () => borrarUsuarioMaestro(nombre));
             }
         }
 
@@ -2270,6 +2324,31 @@
             t.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+        }
+
+        /* ── OFFLINE: aviso fijo + reintentar ── */
+        let offlineRetry = null;
+
+        function mostrarOffline(msg, reintentarFn) {
+            offlineRetry = reintentarFn || null;
+            $('offlineMsg').textContent = msg || '⚠️ Sin conexión. Revisa el internet.';
+            $('offlineBar').classList.add('show');
+        }
+
+        function ocultarOffline() {
+            offlineRetry = null;
+            $('offlineBar').classList.remove('show');
+        }
+
+        function reintentarOffline() {
+            const fn = offlineRetry;
+            ocultarOffline();
+            if (typeof fn === 'function') fn();
+        }
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('online', () => { if (offlineRetry) reintentarOffline(); });
+            window.addEventListener('offline', () => mostrarOffline('⚠️ Sin conexión. Revisa el internet.'));
         }
 
         /* ── TABLERO ── */
