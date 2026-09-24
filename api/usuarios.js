@@ -29,6 +29,8 @@ function claveHash(usuario, clave) {
     .digest('hex');
 }
 
+const modos = ['crear', 'entrar'];
+
 async function buscarUsuario(usuario, clave) {
   const uid = String(usuario || '').trim().toLowerCase();
   if (!uid) return null;
@@ -59,6 +61,8 @@ export default async function handler(req, res) {
   const usuario = String(datos.usuario || '').trim();
   const clave = String(datos.clave || '');
   const nombre = String(datos.nombre || '').trim() || usuario;
+  const modoRaw = String(datos.modo || '').trim();
+  const modo = modos.includes(modoRaw) ? modoRaw : 'auto';
 
   if (!/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü ._-]{2,30}$/.test(usuario)) {
     res.status(400).json({ ok: false, error: 'Nombre de usuario: entre 2 y 30 letras o números' });
@@ -74,7 +78,7 @@ export default async function handler(req, res) {
 
   try {
     const r = await fetch(
-      SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,clave_hash,nombre',
+      SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,clave_hash,nombre,es_maestro',
       { headers: sbHeaders() }
     );
     if (!r.ok) throw new Error('consulta HTTP ' + r.status);
@@ -82,11 +86,20 @@ export default async function handler(req, res) {
 
     if (Array.isArray(arr) && arr.length) {
       const u = arr[0];
-      if (u.clave_hash !== hash) {
-        res.status(401).json({ ok: false, error: 'Clave incorrecta' });
+      if (modo === 'crear') {
+        res.status(409).json({ ok: false, error: 'Ese nombre ya existe. Entra con su clave o pídele al maestro que la resetee' });
         return;
       }
-      res.status(200).json({ ok: true, usuario: uid, nombre: u.nombre || uid, nuevo: false });
+      if (u.clave_hash !== hash) {
+        res.status(401).json({ ok: false, error: 'Clave incorrecta. Si es tu cuenta y la olvidaste, pídele al maestro que la resetee' });
+        return;
+      }
+      res.status(200).json({ ok: true, usuario: uid, nombre: u.nombre || uid, nuevo: false, es_maestro: !!u.es_maestro });
+      return;
+    }
+
+    if (modo === 'entrar') {
+      res.status(404).json({ ok: false, error: 'Ese nombre no existe todavía. Créalo en "Crear cuenta"' });
       return;
     }
 
@@ -102,13 +115,13 @@ export default async function handler(req, res) {
       const t = await ins.text();
       if (ins.status === 409) {
         const r2 = await fetch(
-          SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,clave_hash,nombre',
+          SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,clave_hash,nombre,es_maestro',
           { headers: sbHeaders() }
         );
         const arr2 = r2.ok ? await r2.json() : [];
         if (Array.isArray(arr2) && arr2.length) {
           if (arr2[0].clave_hash === hash) {
-            res.status(200).json({ ok: true, usuario: uid, nombre: arr2[0].nombre || uid, nuevo: false });
+            res.status(200).json({ ok: true, usuario: uid, nombre: arr2[0].nombre || uid, nuevo: false, es_maestro: !!arr2[0].es_maestro });
             return;
           }
           res.status(401).json({ ok: false, error: 'Clave incorrecta' });
@@ -118,7 +131,7 @@ export default async function handler(req, res) {
       throw new Error('crear HTTP ' + ins.status + ' ' + t.slice(0, 150));
     }
 
-    res.status(200).json({ ok: true, usuario: uid, nombre, nuevo: true });
+    res.status(200).json({ ok: true, usuario: uid, nombre, nuevo: true, es_maestro: false });
   } catch (e) {
     res.status(500).json({ ok: false, error: String((e && e.message) || e) });
   }

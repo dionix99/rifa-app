@@ -1035,6 +1035,32 @@
             border-color: var(--accent-gold);
         }
 
+        .pwd-wrap {
+            position: relative;
+        }
+
+        .pwd-wrap input {
+            padding-right: 46px;
+        }
+
+        .pwd-ojito {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            padding: 6px;
+            opacity: 0.7;
+        }
+
+        .pwd-ojito:hover {
+            opacity: 1;
+        }
+
         .field .input-hint {
             font-size: 11px;
             color: var(--text-muted);
@@ -1356,6 +1382,27 @@
             font-family: 'Inter', sans-serif;
         }
 
+        .autorow {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        .btn-ghost.icon {
+            width: auto;
+            margin-top: 0;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .btn-ghost.icon.danger {
+            color: var(--accent-red);
+            border-color: rgba(255, 78, 106, 0.35);
+        }
+
         .btn-logout {
             width: 100%;
             margin-top: 8px;
@@ -1367,6 +1414,18 @@
             cursor: pointer;
             font-family: 'Inter', sans-serif;
             padding: 8px 4px;
+            text-align: center;
+        }
+
+        .btn-link {
+            border: none;
+            background: transparent;
+            color: var(--accent-blue);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            padding: 4px;
             text-align: center;
         }
 
@@ -1623,16 +1682,33 @@
         <div class="scr-card">
             <div class="scr-title">🎟️ Rifa 1-1000</div>
             <div class="scr-sub">Cada persona entra con su nombre y su clave propia. Nadie ve la información de otro usuario.</div>
+
+            <div class="seg" style="margin-bottom:12px;">
+                <button type="button" class="seg-btn active" id="segEntrar" onclick="setLoginMode('entrar')">🔑 Entrar</button>
+                <button type="button" class="seg-btn" id="segCrear" onclick="setLoginMode('crear')">➕ Crear cuenta</button>
+            </div>
+
             <div class="field">
                 <label for="inpUsr">👤 Tu nombre</label>
                 <input id="inpUsr" type="text" autocomplete="off" autocapitalize="sentences" placeholder="Ej. María">
             </div>
             <div class="field">
                 <label for="inpClave">🔑 Tu clave</label>
-                <input id="inpClave" type="password" autocomplete="off" placeholder="Mínimo 3 caracteres">
+                <div class="pwd-wrap">
+                    <input id="inpClave" type="password" autocomplete="off" placeholder="Mínimo 3 caracteres">
+                    <button type="button" class="pwd-ojito" onclick="toggleOjo('inpClave', this)" aria-label="Ver la clave">👁️</button>
+                </div>
             </div>
-            <button class="btn-save" id="btnEntrar" onclick="entrarUsuario()">Entrar / Crear invitado</button>
-            <div class="input-hint" style="margin-top:10px;">¿No tienes? Escribe tu nombre y una clave y pulsa Entrar: se te crea tu cuenta invitada al momento.</div>
+            <div class="field hidden" id="campoRepetir">
+                <label for="inpRepetir">♻️ Repite tu clave</label>
+                <div class="pwd-wrap">
+                    <input id="inpRepetir" type="password" autocomplete="off" placeholder="Escribe la misma clave">
+                    <button type="button" class="pwd-ojito" onclick="toggleOjo('inpRepetir', this)" aria-label="Ver la clave">👁️</button>
+                </div>
+            </div>
+            <button class="btn-save" id="btnEntrar" onclick="entrarUsuario()">Entrar</button>
+            <div class="input-hint" id="loginHint" style="margin-top:10px;"></div>
+            <button class="btn-link" onclick="mostrarComoMaestro()" style="width:100%;margin-top:14px;">🔑 Soy el maestro (resetear claves)</button>
         </div>
     </div>
 
@@ -1647,10 +1723,22 @@
             </div>
             <button class="btn-save" id="btnCrearRifa" onclick="crearRifa()">➕ Crear nueva rifa</button>
             <button class="btn-ghost hidden" id="btnImportar" onclick="importarLocal()">📥 Importar la rifa que ya tenía en este celular</button>
+            <button class="btn-ghost" id="btnPanelMaestro" style="display:none" onclick="abrirPanelMaestro()">🔑 Panel del maestro (resetear claves)</button>
 
             <div class="rifas-list" id="listaRifas"></div>
 
             <button class="btn-logout" onclick="salir()">🚪 Salir / cambiar de usuario</button>
+        </div>
+    </div>
+
+    <!-- ─── PANEL MAESTRO ─── -->
+    <div class="scr" id="maestroScr" style="display:none">
+        <div class="scr-card">
+            <div class="scr-title">🔑 Panel del maestro</div>
+            <div class="scr-sub">Todos los usuarios de la app. Puedes resetearle la clave a quien la olvidó o borrar usuarios (se borran también sus rifas).</div>
+            <div class="rifas-list" id="listaUsuarios"></div>
+            <button class="btn-logout" onclick="volverDeMaestro()">← Volver a mis rifas</button>
+            <button class="btn-logout" onclick="salir()">🚪 Cerrar sesión</button>
         </div>
     </div>
 
@@ -1751,6 +1839,7 @@
         function mostrarPantalla(mode) {
             $('loginScr').style.display = mode === 'login' ? '' : 'none';
             $('misRifasScr').style.display = mode === 'misrifas' ? '' : 'none';
+            $('maestroScr').style.display = mode === 'maestro' ? '' : 'none';
             $('appMain').style.display = mode === 'app' ? '' : 'none';
             if (mode === 'app' && session) actualizarChip();
         }
@@ -1768,43 +1857,81 @@
             updateSorteoUI();
         }
 
+        let modoLogin = 'entrar';
+
+        function toggleOjo(idInp, btn) {
+            const inp = $(idInp);
+            btn.textContent = inp.type === 'password' ? '🙈' : '👁️';
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            inp.focus();
+        }
+
+        function setLoginMode(m) {
+            modoLogin = m === 'crear' ? 'crear' : 'entrar';
+            $('segEntrar').classList.toggle('active', modoLogin === 'entrar');
+            $('segCrear').classList.toggle('active', modoLogin === 'crear');
+            $('campoRepetir').classList.toggle('hidden', modoLogin !== 'crear');
+            $('inpRepetir').value = '';
+            $('btnEntrar').textContent = modoLogin === 'crear' ? 'Crear cuenta y guardar' : 'Entrar';
+            const h = modoLogin === 'crear'
+                ? 'Se crea tu cuenta invitada al momento con esa clave. Guárdala bien: el maestro puede resetearla si la olvidas.'
+                : 'Si tu clave no te deja entrar y es tu cuenta, el maestro puede resetearla.';
+            $('loginHint').textContent = h;
+        }
+
+        function mostrarComoMaestro() {
+            setLoginMode('entrar');
+            toast('Entra con el usuario "maestro" y su clave para abrir el panel');
+            $('inpUsr').focus();
+        }
+
         async function entrarUsuario() {
             const usuario = $('inpUsr').value.trim();
             const clave = $('inpClave').value;
             if (!usuario) { toast('Escribe tu nombre'); return; }
-            if (!clave) { toast('Escribe tu clave'); return; }
+            if (modoLogin === 'crear' && !clave) { toast('Escribe tu clave'); return; }
+            if (modoLogin === 'crear') {
+                const repetir = $('inpRepetir').value;
+                if (clave !== repetir) { toast('⚠️ Las claves no coinciden'); return; }
+            } else if (!clave) { toast('Escribe tu clave'); return; }
             const btn = $('btnEntrar');
             btn.disabled = true;
-            btn.textContent = 'Entrando…';
+            btn.textContent = 'Espera…';
             try {
                 const r = await fetch('api/usuarios', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usuario, clave, nombre: usuario })
+                    body: JSON.stringify({ modo: modoLogin, usuario, clave, nombre: usuario })
                 });
                 const j = await r.json();
                 if (!j.ok) {
-                    toast('⚠️ ' + (j.error || 'Error'));
+                    const msg = r.status === 409
+                        ? 'Ese nombre ya existe. Entra con su clave o pídele al maestro que la resetee'
+                        : (j.error || 'Error');
+                    toast('⚠️ ' + msg);
                     btn.disabled = false;
-                    btn.textContent = 'Entrar / Crear invitado';
+                    btn.textContent = modoLogin === 'crear' ? 'Crear cuenta y guardar' : 'Entrar';
                     return;
                 }
-                session = { usuario: j.usuario, nombre: j.nombre || j.usuario, clave };
+                session = { usuario: j.usuario, nombre: j.nombre || j.usuario, clave, maestro: !!j.es_maestro };
                 localStorage.setItem(LS_USR, JSON.stringify(session));
                 $('inpClave').value = '';
+                $('inpRepetir').value = '';
                 $('inpUsr').value = '';
                 actualizarChip();
                 mostrarMisRifas();
+                toast(j.es_maestro ? '🔑 Sesión de maestro' : (j.nuevo ? '✔ Cuenta creada y guardada' : '✔ Bienvenido de nuevo'));
             } catch (e) {
                 toast('⚠️ Sin conexión');
                 btn.disabled = false;
-                btn.textContent = 'Entrar / Crear invitado';
+                btn.textContent = modoLogin === 'crear' ? 'Crear cuenta y guardar' : 'Entrar';
             }
         }
 
         function mostrarMisRifas() {
             flushRifa();
             mostrarPantalla('misrifas');
+            $('btnPanelMaestro').style.display = session.maestro ? '' : 'none';
             cargarRifas();
         }
 
@@ -1951,8 +2078,83 @@
             mostrarPantalla('login');
         }
 
+        function abrirPanelMaestro() {
+            flushRifa();
+            mostrarPantalla('maestro');
+            cargarUsuarios();
+        }
+
+        function volverDeMaestro() {
+            mostrarMisRifas();
+        }
+
+        async function cargarUsuarios() {
+            const lista = $('listaUsuarios');
+            lista.innerHTML = '<div class="empty">Cargando…</div>';
+            try {
+                const r = await fetch('api/maestro', { headers: apiHeaders() });
+                const j = await r.json();
+                if (!j.ok) { lista.innerHTML = '<div class="empty">⚠️ ' + (j.error || 'Error') + '</div>'; return; }
+                if (!j.usuarios.length) { lista.innerHTML = '<div class="empty">Aún no hay usuarios.</div>'; return; }
+                lista.innerHTML = (j.usuarios || []).map(u => `
+                    <div class="rifa-card">
+                        <div class="rifa-ico" style="background:${u.es_maestro ? 'var(--gold)' : '#eef3fa'};">${u.es_maestro ? '👑' : '👤'}</div>
+                        <div class="rifa-info">
+                            <div class="rifa-nombre">${esc(u.nombre)}${u.es_maestro ? ' <span style="color:var(--gold);font-size:11px;">· MAESTRO</span>' : ''}</div>
+                            <div class="rifa-meta">${u.rifas} rifa${u.rifas === 1 ? '' : 's'}</div>
+                        </div>
+                        ${u.es_maestro ? '' : `
+                        <div class="autorow">
+                            <button class="btn-ghost icon" title="Resetear clave" onclick="resetearClave('${u.id}')">🔄 Clave</button>
+                            <button class="btn-ghost icon danger" title="Borrar usuario y sus rifas" onclick="borrarUsuarioMaestro('${u.id}')">🗑</button>
+                        </div>`}
+                    </div>`).join('');
+            } catch (e) {
+                lista.innerHTML = '<div class="empty">⚠️ Sin conexión</div>';
+            }
+        }
+
+        async function resetearClave(nombre) {
+            const n1 = prompt('Nueva clave para "' + nombre + '":');
+            if (n1 === null) return;
+            const n2 = prompt('Repite la nueva clave:');
+            if (n1 !== n2) { toast('⚠️ Las claves no coinciden'); return; }
+            if (n1.length < 3 || n1.length > 64) { toast('⚠️ La clave debe tener de 3 a 64 caracteres'); return; }
+            try {
+                const r = await fetch('api/maestro', {
+                    method: 'POST',
+                    headers: apiHeaders(),
+                    body: JSON.stringify({ accion: 'reset', nombre, nuevaClave: n1 })
+                });
+                const j = await r.json();
+                if (!j.ok) { toast('⚠️ ' + (j.error || 'Error')); return; }
+                toast('✔ Clave de "' + nombre + '" cambiada: ' + n1);
+            } catch (e) {
+                toast('⚠️ Sin conexión');
+            }
+        }
+
+        async function borrarUsuarioMaestro(nombre) {
+            if (!confirm('¿Borrar al usuario "' + nombre + '" y todas sus rifas? No se puede deshacer.')) return;
+            try {
+                const r = await fetch('api/maestro', {
+                    method: 'POST',
+                    headers: apiHeaders(),
+                    body: JSON.stringify({ accion: 'borrar', nombre })
+                });
+                const j = await r.json();
+                if (!j.ok) { toast('⚠️ ' + (j.error || 'Error')); return; }
+                toast('🗑 Usuario "' + nombre + '" borrado');
+                if (session.nombre === nombre) { salir(); return; }
+                cargarUsuarios();
+            } catch (e) {
+                toast('⚠️ Sin conexión');
+            }
+        }
+
         const fmt = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const fmtInt = n => Number(n).toLocaleString('en-US');
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         function soldNumbers() {
             const arr = [];
