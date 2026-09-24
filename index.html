@@ -2375,7 +2375,7 @@
                     ' · ' + (paid ? 'pagado' : 'pendiente') +
                     '</div></div>' +
                     '<div class="sale-actions">' +
-                    '<button class="btn-pay' + (paid ? ' warn' : '') + '" onclick="cambiarEstado(' + n + ')">' + (paid ? '⏳ Pendiente' : '✔ Pagar') + '</button>' +
+                    '<button class="btn-pay' + (paid ? '' : ' warn') + '" onclick="cambiarEstado(' + n + ')">' + (paid ? '✅ Pagado' : '⏳ Pendiente') + '</button>' +
                     '<button class="btn-del" onclick="quitarVenta(' + n + ')">✖ Quitar</button>' +
                     '</div>';
                 list.appendChild(item);
