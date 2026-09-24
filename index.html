@@ -1232,6 +1232,144 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        /* ── PANTALLAS: login y mis rifas ── */
+        .scr {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            overflow-y: auto;
+            padding: 24px 16px;
+            background: var(--bg);
+        }
+
+        .scr-card {
+            max-width: 400px;
+            width: 100%;
+            margin: 12px auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow);
+        }
+
+        .scr-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #ffd659, #4e8cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scr-sub {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .btn-user {
+            font-size: 11px;
+            color: var(--text);
+            background: var(--glass);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+        }
+
+        .btn-user:active {
+            transform: scale(0.97);
+        }
+
+        .rifas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 14px;
+        }
+
+        .rifa-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .rifa-item-info {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .rifa-item-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .rifa-item-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .rifa-item .btn-del {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .rifa-item .btn-del:hover {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .btn-ghost {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border: none;
+            cursor: pointer;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--accent-blue);
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-logout {
+            width: 100%;
+            margin-top: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            padding: 8px 4px;
+            text-align: center;
+        }
+
         @media (max-width: 480px) {
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
@@ -1245,10 +1383,11 @@
 </head>
 
 <body>
-    <div class="app">
+    <div class="app" id="appMain">
         <header class="header">
             <h1>🎟️ Rifa</h1>
             <div class="header-right">
+                <button class="btn-user" id="btnUser" style="display:none" onclick="mostrarMisRifas()">👤 <span id="lblUser"></span></button>
                 <div class="chip" id="chipFecha">Sorteo: —</div>
             </div>
         </header>
@@ -1479,6 +1618,42 @@
         </section>
     </div>
 
+    <!-- ─── LOGIN ─── -->
+    <div class="scr" id="loginScr" style="display:none">
+        <div class="scr-card">
+            <div class="scr-title">🎟️ Rifa 1-1000</div>
+            <div class="scr-sub">Cada persona entra con su nombre y su clave propia. Nadie ve la información de otro usuario.</div>
+            <div class="field">
+                <label for="inpUsr">👤 Tu nombre</label>
+                <input id="inpUsr" type="text" autocomplete="off" autocapitalize="sentences" placeholder="Ej. María">
+            </div>
+            <div class="field">
+                <label for="inpClave">🔑 Tu clave</label>
+                <input id="inpClave" type="password" autocomplete="off" placeholder="Mínimo 3 caracteres">
+            </div>
+            <button class="btn-save" id="btnEntrar" onclick="entrarUsuario()">Entrar / Crear invitado</button>
+            <div class="input-hint" style="margin-top:10px;">¿No tienes? Escribe tu nombre y una clave y pulsa Entrar: se te crea tu cuenta invitada al momento.</div>
+        </div>
+    </div>
+
+    <!-- ─── MIS RIFAS ─── -->
+    <div class="scr" id="misRifasScr" style="display:none">
+        <div class="scr-card">
+            <div class="scr-title">🎟️ Mis rifas</div>
+            <div class="scr-sub">Hola, <span id="lblUsuario"></span> · estas son solo tus rifas, cada quien ve las suyas.</div>
+
+            <div class="field" style="margin-bottom:12px;">
+                <input id="inpNuevaRifa" type="text" autocomplete="off" autocapitalize="sentences" placeholder="Nombre de la rifa nueva… (ej. Rifa del club)">
+            </div>
+            <button class="btn-save" id="btnCrearRifa" onclick="crearRifa()">➕ Crear nueva rifa</button>
+            <button class="btn-ghost hidden" id="btnImportar" onclick="importarLocal()">📥 Importar la rifa que ya tenía en este celular</button>
+
+            <div class="rifas-list" id="listaRifas"></div>
+
+            <button class="btn-logout" onclick="salir()">🚪 Salir / cambiar de usuario</button>
+        </div>
+    </div>
+
     <!-- ─── MODAL ─── -->
     <div class="overlay" id="overlay">
         <div class="modal">
@@ -1498,7 +1673,9 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        const LS_KEY = 'rifa_app_v1';
+        const LS_KEY = 'rifa_app_v1';     // datos locales viejos (para importar)
+        const LS_USR = 'rifa_sesion_v1'; // sesión { usuario, nombre, clave }
+        const LS_RIFA = 'rifa_actual_v1'; // id de la rifa abierta
         const $ = id => document.getElementById(id);
 
         function defaultState() {
@@ -1523,18 +1700,255 @@
             };
         }
 
-        function load() {
-            try {
-                const raw = localStorage.getItem(LS_KEY);
-                if (raw) return Object.assign(defaultState(), JSON.parse(raw));
-            } catch (e) {}
-            return defaultState();
+        let state = defaultState();
+        let session = localStorageGet(LS_USR);
+        let rifaActual = null;
+
+        function localStorageGet(k) {
+            try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; }
         }
 
-        let state = load();
+        function apiHeaders(extra) {
+            const h = { 'Content-Type': 'application/json' };
+            if (session) { h['X-Usuario'] = session.usuario; h['X-Clave'] = session.clave; }
+            return Object.assign(h, extra || {});
+        }
+
+        function guardarCache(id, st) {
+            try { localStorage.setItem('rifa_cache_' + id, JSON.stringify(st)); } catch (e) {}
+        }
+
+        function cacheDe(id) {
+            try { const r = localStorage.getItem('rifa_cache_' + id); return r ? JSON.parse(r) : null; } catch (e) { return null; }
+        }
+
+        let pushTimer = null;
 
         function save() {
-            try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+            if (!rifaActual) return;
+            guardarCache(rifaActual.id, state);
+            clearTimeout(pushTimer);
+            pushTimer = setTimeout(subirRifa, 700);
+        }
+
+        async function subirRifa() {
+            pushTimer = null;
+            if (!rifaActual || !session) return;
+            try {
+                const r = await fetch('api/rifas?id=' + encodeURIComponent(rifaActual.id),
+                    { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ datos: state }) });
+                if (!r.ok) toast('⚠️ No se pudo guardar');
+            } catch (e) {
+                toast('⚠️ Sin conexión: los cambios se quedaron solo en este celular');
+            }
+        }
+
+        function flushRifa() {
+            if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; subirRifa(); }
+        }
+
+        /* ── PANTALLAS: login / mis rifas / app ── */
+        function mostrarPantalla(mode) {
+            $('loginScr').style.display = mode === 'login' ? '' : 'none';
+            $('misRifasScr').style.display = mode === 'misrifas' ? '' : 'none';
+            $('appMain').style.display = mode === 'app' ? '' : 'none';
+            if (mode === 'app' && session) actualizarChip();
+        }
+
+        function actualizarChip() {
+            $('lblUser').textContent = session.nombre || session.usuario;
+            $('btnUser').style.display = '';
+        }
+
+        function aplicarTodo() {
+            cargarAjustes();
+            actualizarPlaceholderNum();
+            renderVendidos();
+            updateStats();
+            updateSorteoUI();
+        }
+
+        async function entrarUsuario() {
+            const usuario = $('inpUsr').value.trim();
+            const clave = $('inpClave').value;
+            if (!usuario) { toast('Escribe tu nombre'); return; }
+            if (!clave) { toast('Escribe tu clave'); return; }
+            const btn = $('btnEntrar');
+            btn.disabled = true;
+            btn.textContent = 'Entrando…';
+            try {
+                const r = await fetch('api/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, clave, nombre: usuario })
+                });
+                const j = await r.json();
+                if (!j.ok) {
+                    toast('⚠️ ' + (j.error || 'Error'));
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar / Crear invitado';
+                    return;
+                }
+                session = { usuario: j.usuario, nombre: j.nombre || j.usuario, clave };
+                localStorage.setItem(LS_USR, JSON.stringify(session));
+                $('inpClave').value = '';
+                $('inpUsr').value = '';
+                actualizarChip();
+                mostrarMisRifas();
+            } catch (e) {
+                toast('⚠️ Sin conexión');
+                btn.disabled = false;
+                btn.textContent = 'Entrar / Crear invitado';
+            }
+        }
+
+        function mostrarMisRifas() {
+            flushRifa();
+            mostrarPantalla('misrifas');
+            cargarRifas();
+        }
+
+        async function cargarRifas() {
+            const lista = $('listaRifas');
+            lista.innerHTML = '<div class="empty">Cargando…</div>';
+            $('lblUsuario').textContent = session.nombre || session.usuario;
+            try {
+                const r = await fetch('api/rifas', { headers: apiHeaders() });
+                const j = await r.json();
+                if (!j.ok) { lista.innerHTML = '<div class="empty">⚠️ ' + (j.error || 'Error') + '</div>'; return; }
+                const rifas = j.rifas || [];
+                $('btnImportar').style.display = (!rifas.length && localStorage.getItem(LS_KEY)) ? '' : 'none';
+                lista.innerHTML = '';
+                if (!rifas.length) {
+                    lista.innerHTML = '<div class="empty">Aún no tienes rifas. Escribe un nombre y crea la primera 👆</div>';
+                    return;
+                }
+                rifas.forEach(ri => {
+                    const item = document.createElement('div');
+                    item.className = 'rifa-item';
+                    const info = document.createElement('div');
+                    info.className = 'rifa-item-info';
+                    const nm = document.createElement('div');
+                    nm.className = 'rifa-item-nombre';
+                    nm.textContent = '🎟️ ' + (ri.nombre || 'Sin nombre');
+                    const meta = document.createElement('div');
+                    meta.className = 'rifa-item-meta';
+                    meta.textContent = 'Actualizada ' + fechaCorta(ri.actualizado);
+                    info.appendChild(nm);
+                    info.appendChild(meta);
+                    info.addEventListener('click', () => abrirRifa(ri.id));
+                    const del = document.createElement('button');
+                    del.className = 'btn-del';
+                    del.textContent = '🗑';
+                    del.addEventListener('click', e => { e.stopPropagation(); borrarRifa(ri.id); });
+                    item.appendChild(info);
+                    item.appendChild(del);
+                    lista.appendChild(item);
+                });
+            } catch (e) {
+                lista.innerHTML = '<div class="empty">⚠️ Sin conexión. Revisa el internet e inténtalo de nuevo.</div>';
+            }
+        }
+
+        function fechaCorta(iso) {
+            if (!iso) return '?';
+            try {
+                return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            } catch (e) { return '?'; }
+        }
+
+        async function crearRifa() {
+            const nombre = $('inpNuevaRifa').value.trim();
+            if (!nombre) { toast('Escribe un nombre para tu rifa'); return; }
+            const btn = $('btnCrearRifa');
+            btn.disabled = true;
+            btn.textContent = 'Creando…';
+            try {
+                const r = await fetch('api/rifas', {
+                    method: 'POST', headers: apiHeaders(), body: JSON.stringify({ nombre })
+                });
+                const j = await r.json();
+                if (!j.ok) {
+                    toast('⚠️ ' + (j.error || 'Error'));
+                    btn.disabled = false;
+                    btn.textContent = '➕ Crear nueva rifa';
+                    return;
+                }
+                $('inpNuevaRifa').value = '';
+                btn.disabled = false;
+                btn.textContent = '➕ Crear nueva rifa';
+                await cargarRifas();
+                abrirRifa(j.id);
+            } catch (e) {
+                toast('⚠️ Sin conexión');
+                btn.disabled = false;
+                btn.textContent = '➕ Crear nueva rifa';
+            }
+        }
+
+        async function abrirRifa(id) {
+            localStorage.setItem(LS_RIFA, id);
+            rifaActual = { id: id };
+            mostrarPantalla('app');
+            const cache = cacheDe(id);
+            if (cache) {
+                try { state = Object.assign(defaultState(), cache); aplicarTodo(); } catch (e) {}
+            }
+            try {
+                const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { headers: apiHeaders() });
+                const j = await r.json();
+                if (!j.ok) { toast('⚠️ ' + (j.error || 'Error al abrir')); return; }
+                state = Object.assign(defaultState(), j.datos || {});
+                rifaActual.nombre = j.nombre || '';
+                guardarCache(id, state);
+                aplicarTodo();
+            } catch (e) {
+                toast('⚠️ Sin conexión: abriste la copia guardada en este celular');
+            }
+        }
+
+        function borrarRifa(id) {
+            if (!confirm('¿Borrar esta rifa para siempre?')) return;
+            (async () => {
+                try {
+                    const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { method: 'DELETE', headers: apiHeaders() });
+                    const j = await r.json();
+                    if (!j.ok) { toast('⚠️ ' + (j.error || 'No se pudo borrar')); return; }
+                    try { localStorage.removeItem('rifa_cache_' + id); } catch (e) {}
+                    if (rifaActual && rifaActual.id === id) {
+                        rifaActual = null;
+                        try { localStorage.removeItem(LS_RIFA); } catch (e) {}
+                    }
+                    mostrarMisRifas();
+                } catch (e) { toast('⚠️ Sin conexión'); }
+            })();
+        }
+
+        async function importarLocal() {
+            const raw = localStorage.getItem(LS_KEY);
+            if (!raw) return;
+            if (!confirm('¿Importar la rifa que ya tenías guardada en este celular como una rifa nueva?')) return;
+            let datos = defaultState();
+            try { datos = Object.assign(defaultState(), JSON.parse(raw)); } catch (e) {}
+            try {
+                const r = await fetch('api/rifas', {
+                    method: 'POST', headers: apiHeaders(), body: JSON.stringify({ nombre: 'Mi rifa', datos })
+                });
+                const j = await r.json();
+                if (!j.ok) { toast('⚠️ ' + (j.error || 'Error')); return; }
+                localStorage.removeItem(LS_KEY);
+                await cargarRifas();
+                abrirRifa(j.id);
+            } catch (e) { toast('⚠️ Sin conexión'); }
+        }
+
+        function salir() {
+            flushRifa();
+            session = null;
+            rifaActual = null;
+            pushTimer = null;
+            try { localStorage.removeItem(LS_USR); localStorage.removeItem(LS_RIFA); } catch (e) {}
+            mostrarPantalla('login');
         }
 
         const fmt = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2342,9 +2756,9 @@
         }
 
         function borrarTodo() {
-            if (!confirm('⚠️ Esto borra TODOS los datos de la rifa y vuelve a 1-1000, ticket $2, premio $500.\n¿Continuar?')) return;
+            if (!confirm('⚠️ Esto borra TODOS los datos de esta rifa y vuelve a 1-1000, ticket $2, premio $500.\n¿Continuar?')) return;
             state = defaultState();
-            localStorage.removeItem(LS_KEY);
+            save();
             cargarAjustes();
             renderGrid();
             updateStats();
@@ -2357,11 +2771,29 @@
             el.addEventListener('click', () => { try { navigator.vibrate && navigator.vibrate(10); } catch (e) {} });
         });
 
-        cargarAjustes();
-        actualizarPlaceholderNum();
-        renderVendidos();
-        updateStats();
-        updateSorteoUI();
+        window.addEventListener('beforeunload', () => {
+            if (rifaActual && session) {
+                try {
+                    fetch('api/rifas?id=' + encodeURIComponent(rifaActual.id),
+                        { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ datos: state }), keepalive: true });
+                } catch (e) {}
+            }
+        });
+
+        (async function iniciar() {
+            if (session && session.usuario && session.clave) {
+                actualizarChip();
+                mostrarPantalla('misrifas');
+                try {
+                    await cargarRifas();
+                    const rid = localStorage.getItem(LS_RIFA);
+                    if (rid) abrirRifa(rid);
+                } catch (e) {}
+            } else {
+                session = null;
+                mostrarPantalla('login');
+            }
+        })();
     </script>
 </body>
 
