@@ -2097,22 +2097,24 @@
                 subirRifa();
                 return;
             }
+            let r, j;
             try {
-                const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { headers: apiHeaders() });
-                const j = await r.json();
-                if (!j.ok) {
-                    if (r.status === 401) { ocultarOffline(); toast('⚠️ No autorizado: entra con tu nombre y clave'); }
-                    else toast('⚠️ ' + (j.error || 'Error al abrir'));
-                    return;
-                }
-                state = Object.assign(defaultState(), j.datos || {});
-                rifaActual.nombre = j.nombre || '';
-                guardarCache(id, state);
-                aplicarTodo();
-                ocultarOffline();
+                r = await fetch('api/rifas?id=' + encodeURIComponent(id), { headers: apiHeaders() });
             } catch (e) {
                 mostrarOffline('⚠️ Sin conexión: estás viendo la copia guardada en este celular.', () => abrirRifa(id));
+                return;
             }
+            try { j = await r.json(); } catch (e) { j = { ok: false, error: 'Error del servidor (' + r.status + ')' }; }
+            ocultarOffline();
+            if (!j.ok) {
+                if (r.status === 401) toast('⚠️ No autorizado: entra con tu nombre y clave');
+                else toast('⚠️ ' + (j.error || 'Error al abrir'));
+                return;
+            }
+            state = Object.assign(defaultState(), j.datos || {});
+            rifaActual.nombre = j.nombre || '';
+            guardarCache(id, state);
+            aplicarTodo();
         }
 
         function borrarRifa(id) {
@@ -2796,10 +2798,8 @@
             $('sfFechaLabel').textContent = manual ? '🎯 Modo del sorteo' : '📅 Fecha del sorteo';
             if (manual) {
                 $('sfFecha').innerHTML = 'Cuando decidas 🎯';
-                $('sfCount').textContent = '';
             } else if (!state.drawDate) {
                 $('sfFecha').innerHTML = '—';
-                $('sfCount').textContent = '';
             } else {
                 const d = diasPara(state.drawDate);
                 let count;
