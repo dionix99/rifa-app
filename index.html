@@ -1727,7 +1727,7 @@
             <div class="field">
                 <label for="inpClave">🔑 Tu clave</label>
                 <div class="pwd-wrap">
-                    <input id="inpClave" type="password" autocomplete="off" placeholder="Mínimo 3 caracteres">
+                    <input id="inpClave" type="password" autocomplete="off" placeholder="Mínimo 6 caracteres (cuentas nuevas)">
                     <button type="button" class="pwd-ojito" onclick="toggleOjo('inpClave', this)" aria-label="Ver la clave">👁️</button>
                 </div>
             </div>
@@ -1847,11 +1847,26 @@
             try { const r = localStorage.getItem('rifa_cache_' + id); return r ? JSON.parse(r) : null; } catch (e) { return null; }
         }
 
+        // Marca de "cambios sin subir": se pone al guardar y solo se quita cuando
+        // el servidor confirma esa misma versión (así no se pierden ventas offline).
+        function marcarPendiente(id) {
+            try { localStorage.setItem('rifa_pend_' + id, Date.now() + '-' + Math.random().toString(36).slice(2)); } catch (e) {}
+        }
+
+        function pendienteDe(id) {
+            try { return localStorage.getItem('rifa_pend_' + id); } catch (e) { return null; }
+        }
+
+        function quitarPendiente(id, version) {
+            try { if (localStorage.getItem('rifa_pend_' + id) === version) localStorage.removeItem('rifa_pend_' + id); } catch (e) {}
+        }
+
         let pushTimer = null;
 
         function save() {
             if (!rifaActual) return;
             guardarCache(rifaActual.id, state);
+            marcarPendiente(rifaActual.id);
             clearTimeout(pushTimer);
             pushTimer = setTimeout(subirRifa, 700);
         }
@@ -1859,13 +1874,20 @@
         async function subirRifa() {
             pushTimer = null;
             if (!rifaActual || !session) return;
+            const id = rifaActual.id;
+            const version = pendienteDe(id);
             try {
-                const r = await fetch('api/rifas?id=' + encodeURIComponent(rifaActual.id),
+                const r = await fetch('api/rifas?id=' + encodeURIComponent(id),
                     { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ datos: state }) });
                 if (!r.ok) {
                     if (r.status === 401) { ocultarOffline(); toast('⚠️ No autorizado: entra con tu nombre y clave'); }
+                    else if (r.status === 429) { const j = await r.json().catch(() => ({})); toast('⚠️ ' + (j.error || 'Demasiados intentos, espera unos minutos')); }
+                    else if (r.status === 404) { if (version) quitarPendiente(id, version); toast('⚠️ Esta rifa ya no existe en la nube'); }
                     else toast('⚠️ No se pudo guardar');
-                } else ocultarOffline();
+                } else {
+                    if (version) quitarPendiente(id, version);
+                    ocultarOffline();
+                }
             } catch (e) {
                 mostrarOffline('⚠️ Sin conexión: los cambios quedaron guardados solo en este celular.', () => subirRifa());
             }
@@ -1933,6 +1955,7 @@
             if (modoLogin === 'crear') {
                 const repetir = $('inpRepetir').value;
                 if (clave !== repetir) { toast('⚠️ Las claves no coinciden'); return; }
+                if (clave.length < 6) { toast('⚠️ La clave debe tener mínimo 6 caracteres'); return; }
             } else if (!clave) { toast('Escribe tu clave'); return; }
             const btn = $('btnEntrar');
             btn.disabled = true;
@@ -2067,6 +2090,13 @@
             if (cache) {
                 try { state = Object.assign(defaultState(), cache); aplicarTodo(); } catch (e) {}
             }
+            if (cache && pendienteDe(id)) {
+                // Hay cambios hechos en este celular que no llegaron al servidor:
+                // se suben en vez de reemplazarlos por la versión vieja de la nube.
+                toast('☁️ Subiendo cambios guardados en este celular…');
+                subirRifa();
+                return;
+            }
             try {
                 const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { headers: apiHeaders() });
                 const j = await r.json();
@@ -2092,7 +2122,7 @@
                     const r = await fetch('api/rifas?id=' + encodeURIComponent(id), { method: 'DELETE', headers: apiHeaders() });
                     const j = await r.json();
                     if (!j.ok) { toast('⚠️ ' + (j.error || 'No se pudo borrar')); return; }
-                    try { localStorage.removeItem('rifa_cache_' + id); } catch (e) {}
+                    try { localStorage.removeItem('rifa_cache_' + id); localStorage.removeItem('rifa_pend_' + id); } catch (e) {}
                     if (rifaActual && rifaActual.id === id) {
                         rifaActual = null;
                         try { localStorage.removeItem(LS_RIFA); } catch (e) {}
@@ -2171,7 +2201,7 @@
             if (n1 === null) return;
             const n2 = prompt('Repite la nueva clave:');
             if (n1 !== n2) { toast('⚠️ Las claves no coinciden'); return; }
-            if (n1.length < 3 || n1.length > 64) { toast('⚠️ La clave debe tener de 3 a 64 caracteres'); return; }
+            if (n1.length < 6 || n1.length > 64) { toast('⚠️ La clave debe tener de 6 a 64 caracteres'); return; }
             try {
                 const r = await fetch('api/maestro', {
                     method: 'POST',
@@ -2449,7 +2479,7 @@
                 item.innerHTML =
                     '<div class="sale-item-info" onclick="buscarYMostrar(' + n + ')">' +
                     '<span class="n' + (paid ? ' paid' : '') + '" title="' + (paid ? 'pagado' : 'pendiente') + '">' + pad(n, padLen) + '</span>' +
-                    '<div class="meta">' + (d.name ? d.name : 'sin nombre') + ' · ' +
+                    '<div class="meta">' + (d.name ? esc(d.name) : 'sin nombre') + ' · ' +
                     new Date(d.soldAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
                     ' · ' + (paid ? 'pagado' : 'pendiente') +
                     '</div></div>' +
@@ -2649,7 +2679,7 @@
             const chip = $('chipFecha');
             if (state.modoSorteo === 'manual') chip.innerHTML = '🎲 Sorteo manual';
             else chip.innerHTML = state.drawDate ?
-                '📅 <b>' + state.drawDate.split('-').reverse().join('/') + '</b>' : '📅 Sin fecha';
+                '📅 <b>' + esc(state.drawDate.split('-').reverse().join('/')) + '</b>' : '📅 Sin fecha';
 
             actualizarPlaceholderNum();
             renderVendidos();
@@ -2777,7 +2807,7 @@
                 else if (d > 0) count = '<span class="countdown">falta ' + d + ' día' + (d === 1 ? '' : 's') + '</span>';
                 else if (d === 0) count = '<span class="countdown">es HOY 🎉</span>';
                 else count = '<span class="countdown">hace ' + (-d) + ' día' + (d === -1 ? '' : 's') + '</span>';
-                $('sfFecha').innerHTML = fechatexto(state.drawDate) + count;
+                $('sfFecha').innerHTML = esc(fechatexto(state.drawDate)) + count;
             }
 
             $('btnSortear').textContent = state.numPremios === 3 ? '🎲 Sortear los 3 premios' : '🎲 Sortear ganador';
@@ -2806,9 +2836,9 @@
                     item.innerHTML =
                         '<div><span class="pos">' + (w.pos ? (posEmoji[w.pos] || '🏆') : '🏆') + '</span> ' +
                         '<span class="n">' + pad(w.num, String(state.max).length) + '</span>' +
-                        '<div class="meta">' + (w.name ? w.name + ' · ' : '') +
+                        '<div class="meta">' + (w.name ? esc(w.name) + ' · ' : '') +
                         (w.pos ? ordPos(w.pos) + ' premio · ' : '') +
-                        premioTextW + ' · ' +
+                        esc(premioTextW) + ' · ' +
                         new Date(w.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
                         '</div></div>' +
                         (isLast ? '<button class="undo" onclick="deshacerUltimo()">↩️ Quitar</button>' : '');
