@@ -1,8 +1,9 @@
 # Compartir la app de Rifa
 
-La app es un solo archivo y la puedes publicar gratis en Vercel para compartirla por enlace
-(igual que hiciste con la de remesa). Los datos se guardan en cada celular que la abra
-(localStorage), así que cada vendedor puede llevar su propia cuenta.
+La app se publica gratis en Vercel para compartirla por enlace (igual que hiciste con la
+de remesa). Cada vendedor entra con su usuario y clave, y sus rifas se guardan en la nube
+(Supabase). Antes de publicar, sigue la sección **Configuración** del `README.md`
+(crear las tablas con `supabase.sql` y poner `SUPABASE_URL` y `SUPABASE_SERVICE_KEY` en Vercel).
 
 ## Paso 1 — Crear el repo en GitHub
 
@@ -21,6 +22,8 @@ La app es un solo archivo y la puedes publicar gratis en Vercel para compartirla
    - `package.json`
    - `README.md`
    - `COMO-COMPARTIR.md`
+   - `supabase.sql`
+   - la carpeta `api/` (completa, con sus 4 archivos .js)
    - la carpeta `iconos/` (arrástrala completa, con sus 2 .png adentro)
 2. **Commit changes** → "Commit directly to the main branch" → Commit.
 
@@ -36,9 +39,4 @@ La app es un solo archivo y la puedes publicar gratis en Vercel para compartirla
 ## Actualizar luego
 
 Cuando cambies `index.html` en `rifa-app/`, reemplaza el archivo en GitHub
-(Edit → sube el archivo nuevo → Commiit) y Vercel se actualiza solo.
-
-## Alternativa sin GitHub ni Vercel
-
-Manda directamente el archivo `index.html` por WhatsApp: se abre en el navegador del
-celular que lo reciba y funciona igual (aunque guarda los datos en SU celular, no en el tuyo).
+(Edit → sube el archivo nuevo → Commit) y Vercel se actualiza solo.

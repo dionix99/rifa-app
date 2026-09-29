@@ -1,15 +1,7 @@
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { SUPABASE_URL, SERVICE_KEY, sbHeaders, verificarClave, mensajeBloqueo } from './_lib.js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const MAX_DATOS = 600 * 1024;
-
-function sbHeaders(extra) {
-  return Object.assign(
-    { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
-    extra || {}
-  );
-}
 
 function leerCuerpo(req) {
   if (req.body && typeof req.body === 'object') return Promise.resolve(req.body);
@@ -22,26 +14,6 @@ function leerCuerpo(req) {
     });
     req.on('error', reject);
   });
-}
-
-function claveHash(usuario, clave) {
-  return createHash('sha256')
-    .update(String(usuario).trim().toLowerCase() + '|' + String(clave))
-    .digest('hex');
-}
-
-async function buscarUsuario(usuario, clave) {
-  const uid = String(usuario || '').trim().toLowerCase();
-  if (!uid) return null;
-  const r = await fetch(
-    SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,clave_hash',
-    { headers: sbHeaders() }
-  );
-  if (!r.ok) return null;
-  const arr = await r.json();
-  if (!Array.isArray(arr) || !arr.length) return null;
-  if (arr[0].clave_hash !== claveHash(uid, clave)) return null;
-  return uid;
 }
 
 function qparam(qs, name) {
@@ -62,11 +34,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  const uid = await buscarUsuario(req.headers['x-usuario'], req.headers['x-clave']);
-  if (!uid) {
+  const v = await verificarClave(req.headers['x-usuario'], req.headers['x-clave']);
+  if (v.estado === 'bloqueado') {
+    res.status(429).json({ ok: false, error: mensajeBloqueo(v.minutos) });
+    return;
+  }
+  if (v.estado !== 'ok') {
     res.status(401).json({ ok: false, error: 'No autorizado: entra con tu nombre y clave' });
     return;
   }
+  const uid = v.u.id;
 
   const qs = req.url.split('?')[1] || '';
   const id = qparam(qs, 'id');

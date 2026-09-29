@@ -1,14 +1,4 @@
-import { createHash } from 'node:crypto';
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-function sbHeaders(extra) {
-  return Object.assign(
-    { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
-    extra || {}
-  );
-}
+import { SUPABASE_URL, SERVICE_KEY, CLAVE_MIN, CLAVE_MAX, sbHeaders, claveHash, verificarClave } from './_lib.js';
 
 function leerCuerpo(req) {
   if (req.body && typeof req.body === 'object') return Promise.resolve(req.body);
@@ -23,31 +13,15 @@ function leerCuerpo(req) {
   });
 }
 
-function claveHash(usuario, clave) {
-  return createHash('sha256')
-    .update(String(usuario).trim().toLowerCase() + '|' + String(clave))
-    .digest('hex');
-}
-
 async function authMaestro(req) {
-  const usuario = String(req.headers['x-usuario'] || '').trim().toLowerCase();
-  const clave = String(req.headers['x-clave'] || '');
-  if (!usuario || !clave) return null;
-  const r = await fetch(
-    SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(usuario) + '&select=id,clave_hash,es_maestro',
-    { headers: sbHeaders() }
-  );
-  if (!r.ok) return null;
-  const arr = await r.json();
-  const u = Array.isArray(arr) && arr[0];
-  if (!u || !u.es_maestro) return null;
-  if (u.clave_hash !== claveHash(usuario, clave)) return null;
-  return u.id;
+  const v = await verificarClave(req.headers['x-usuario'], req.headers['x-clave']);
+  if (v.estado !== 'ok' || !v.u.es_maestro) return null;
+  return v.u.id;
 }
 
 async function buscarUsuario(uid, extraCols) {
   const r = await fetch(
-    SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=id,' + (extraCols || 'id'),
+    SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + encodeURIComponent(uid) + '&select=' + (extraCols || 'id'),
     { headers: sbHeaders() }
   );
   if (!r.ok) return null;
@@ -118,11 +92,11 @@ export default async function handler(req, res) {
     try {
       if (accion === 'reset') {
         const nuevaClave = String(datos.nuevaClave || '');
-        if (nuevaClave.length < 3 || nuevaClave.length > 64) {
-          res.status(400).json({ ok: false, error: 'La clave debe tener entre 3 y 64 caracteres' });
+        if (nuevaClave.length < CLAVE_MIN || nuevaClave.length > CLAVE_MAX) {
+          res.status(400).json({ ok: false, error: 'La clave debe tener entre ' + CLAVE_MIN + ' y ' + CLAVE_MAX + ' caracteres' });
           return;
         }
-        const u = await buscarUsuario(nombre, 'id,clave_hash,es_maestro');
+        const u = await buscarUsuario(nombre, '*');
         if (!u) { res.status(404).json({ ok: false, error: 'Ese usuario no existe' }); return; }
         if (u.es_maestro) { res.status(403).json({ ok: false, error: 'No se puede resetear la clave de un maestro' }); return; }
         if (nombre === maestroId) { res.status(403).json({ ok: false, error: 'Usa el panel para cambiar tu propia clave' }); return; }
@@ -131,7 +105,10 @@ export default async function handler(req, res) {
           {
             method: 'PATCH',
             headers: sbHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-            body: JSON.stringify({ clave_hash: claveHash(nombre, nuevaClave) }),
+            body: JSON.stringify(Object.assign(
+              { clave_hash: claveHash(nombre, nuevaClave) },
+              'intentos_fallidos' in u ? { intentos_fallidos: 0, bloqueado_hasta: null } : {}
+            )),
           }
         );
         if (!up.ok) throw new Error('actualizar HTTP ' + up.status);
